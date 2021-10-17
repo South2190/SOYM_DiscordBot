@@ -1,5 +1,6 @@
 # SOYM_DiscordBot
 身内用Discordサーバー専用Bot。~~結構無理矢理なソースコードだけど割としっかり動いてるから見逃してくれ~~
+こちらのBotはWindowsでの利用を想定しているため、他の環境だと動作しない可能性がある。
 
 ## 機能・用途
 - Twitterのオンゲキ公式アカウント([@ongeki_official](https://twitter.com/ongeki_official))からのツイートをリアルタイムで取得し、新曲追加に関するツイートのURLをDiscordの特定チャンネルに送信する。
