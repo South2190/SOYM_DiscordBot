@@ -7,7 +7,7 @@ access_token		= ''
 access_token_secret	= ''
 
 """
-DiscordBotアカウント:#hogebot#hoge
+DiscordBotアカウント:hogebot#hoge
 """
 discord_token		= ''
 discord_channel		= 
