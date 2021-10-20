@@ -33,6 +33,7 @@ config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoad
 
 LOG.info('SOYM_DiscordBot version1.0.1.211021')
 LOG.info('--------------- START LOGGING ---------------')
+LOG.info('--------------- START LOGGING ---------------')
 
 # 起動時に動作する処理
 @client.event
