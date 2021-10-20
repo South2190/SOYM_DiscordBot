@@ -22,6 +22,7 @@ print(os.getcwd())
 ofilename = 'logdump/logger.log'
 if os.path.isfile(ofilename):
 	i = 0
+	flag = True
 	while(flag):
 		lfilename = 'logdump/logger_{num}.log'.format(num = i)
 		flag = os.path.isfile(lfilename)
@@ -30,8 +31,8 @@ if os.path.isfile(ofilename):
 
 config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
 
-LOG.info('---------- START LOGGING ----------')
-LOG.info('SOYM_DiscordBot version1.0.1.211020-rc1')
+LOG.info('SOYM_DiscordBot version1.0.1.211021')
+LOG.info('--------------- START LOGGING ---------------')
 
 # 起動時に動作する処理
 @client.event
@@ -91,6 +92,9 @@ async def on_ready():
 		except KeyError as ke:
 			print(ke)
 			LOG.warning("KeyErrorを無視しました")
+
+		except Exception as e:
+			LOG.error(e)
 
 # Botの起動とDiscordサーバーへの接続
 client.run(OAuthData.discord_token)
