@@ -17,7 +17,21 @@ client = discord.Client()
 LOG = getLogger(__name__)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print(os.getcwd())
+
+# 古いログファイルが見つかった場合は名前を変更する
+ofilename = 'logdump/logger.log'
+if os.path.isfile(ofilename):
+	i = 0
+	while(flag):
+		lfilename = 'logdump/logger_{num}.log'.format(num = i)
+		flag = os.path.isfile(lfilename)
+		i += 1
+	os.rename(ofilename, lfilename)
+
 config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
+
+LOG.info('---------- START LOGGING ----------')
+LOG.info('SOYM_DiscordBot version1.0.1.211020-rc1')
 
 # 起動時に動作する処理
 @client.event
@@ -58,7 +72,10 @@ async def on_ready():
 				"""
 
 				# ツイートに特定のワードが含まれていた場合
-				if any([('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])), '一挙公開' in tweet['text'], 'LUNATIC' in tweet['text']]) and tweet['user']['screen_name'] == OAuthData.twitter_name:
+				if tweet['user']['screen_name'] == OAuthData.twitter_name and any(
+					[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
+					'一挙公開' in tweet['text'],
+					'LUNATIC' in tweet['text']]):
 					LOG.debug(tl)
 					LOG.info("ツイートが見つかりました")
 					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
