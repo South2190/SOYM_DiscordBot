@@ -12,6 +12,7 @@ import OAuthData
 
 # 前処理
 client = discord.Client()
+hideRT = 'RT @{aName}:'.format(aName = OAuthData.twitter_name)
 
 # ロガーの準備
 LOG = getLogger(__name__)
@@ -31,7 +32,7 @@ if os.path.isfile(ofilename):
 
 config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
 
-LOG.info('SOYM_DiscordBot version1.0.1.211021')
+LOG.info('SOYM_DiscordBot version1.0.2.211021')
 LOG.info('--------------- START LOGGING ---------------')
 
 # 起動時に動作する処理
@@ -76,7 +77,8 @@ async def on_ready():
 				if tweet['user']['screen_name'] == OAuthData.twitter_name and any(
 					[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
 					'一挙公開' in tweet['text'],
-					'LUNATIC' in tweet['text']]):
+					'LUNATIC' in tweet['text']]
+					) and hideRT not in tweet['text']:
 					LOG.debug(tl)
 					LOG.info("ツイートが見つかりました")
 					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
