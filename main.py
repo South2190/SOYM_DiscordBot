@@ -12,7 +12,7 @@ import OAuthData
 
 # 前処理
 client = discord.Client()
-hideRT = 'RT @{aName}:'.format(aName = OAuthData.twitter_name)
+#hideRT = 'RT @{aName}:'.format(aName = OAuthData.twitter_name)
 
 # ロガーの準備
 LOG = getLogger(__name__)
@@ -32,7 +32,7 @@ if os.path.isfile(ofilename):
 
 config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
 
-LOG.info('SOYM_DiscordBot version1.0.2.211021')
+LOG.info('SOYM_DiscordBot version1.0.3.211101')
 LOG.info('--------------- START LOGGING ---------------')
 
 # 起動時に動作する処理
@@ -62,23 +62,20 @@ async def on_ready():
 				tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = tweet['id'], username = tweet['user']['screen_name'], text = tweet['text'])
 				print(tl)
 
-				"""
-				print('追加' in tweet['text'])
-				print('新曲' in tweet['text'])
-				print('楽曲' in tweet['text'])
-				print('一挙公開' in tweet['text'])
-				print('LUNATIC' in tweet['text'])
-				print('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text']))
-				print(any([('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])), '一挙公開' in tweet['text'], 'LUNATIC' in tweet['text']]))
-				print(tweet['user']['screen_name'] == OAuthData.twitter_name)
-				"""
-
-				# ツイートに特定のワードが含まれていた場合
-				if tweet['user']['screen_name'] == OAuthData.twitter_name and any(
-					[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
-					'一挙公開' in tweet['text'],
-					'LUNATIC' in tweet['text']]
-					) and hideRT not in tweet['text']:
+				# 新曲追加に関するツイートの抽出
+				if all(
+					# ツイート元が@ongeki_officialの場合
+					[tweet['user']['screen_name'] == OAuthData.twitter_name,
+					# いずれかのワードが含まれていた場合
+					any(
+						[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
+						'一挙公開' in tweet['text'],
+						'LUNATIC' in tweet['text']]
+					),
+					# リツイートでない場合
+					'RT @' not in tweet['text'],
+					':' not in tweet['text']]
+				):
 					LOG.debug(tl)
 					LOG.info("ツイートが見つかりました")
 					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
