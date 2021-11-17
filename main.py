@@ -11,13 +11,19 @@ from logging import getLogger, config
 import OAuthData
 
 # 前処理
+title = 'SOYM_DiscordBot version1.0.5.211110'
+os.system('title ' + title)
 client = discord.Client()
-hideRT = 'RT @'
+#hideRT = 'RT @{aName}:'.format(aName = OAuthData.twitter_name)
 
 # ロガーの準備
 LOG = getLogger(__name__)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print(os.getcwd())
+
+# フォルダが存在しない場合作成する
+if os.path.isdir('logdump') == False:
+	os.mkdir('logdump')
 
 # 古いログファイルが見つかった場合は名前を変更する
 ofilename = 'logdump/logger.log'
@@ -32,7 +38,7 @@ if os.path.isfile(ofilename):
 
 config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
 
-LOG.info('SOYM_DiscordBot version1.0.4.211103')
+LOG.info(title)
 LOG.info('--------------- START LOGGING ---------------')
 
 # 起動時に動作する処理
@@ -62,12 +68,19 @@ async def on_ready():
 				tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = tweet['id'], username = tweet['user']['screen_name'], text = tweet['text'])
 				print(tl)
 
-				# ツイートに特定のワードが含まれていた場合
-				if tweet['user']['screen_name'] == OAuthData.twitter_name and any(
-					[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
-					'一挙公開' in tweet['text'],
-					'LUNATIC' in tweet['text']]
-					) and hideRT not in tweet['text']:
+				# 新曲追加に関するツイートの抽出
+				if all(
+					# ツイート元が@ongeki_officialの場合
+					[tweet['user']['screen_name'] == OAuthData.twitter_name,
+					# いずれかのワードが含まれていた場合
+					any(
+						[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
+						'一挙公開' in tweet['text'],
+						'LUNATIC' in tweet['text']]
+					),
+					# リツイートでない場合
+					'RT @' not in tweet['text']]
+				):
 					LOG.debug(tl)
 					LOG.info("ツイートが見つかりました")
 					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
