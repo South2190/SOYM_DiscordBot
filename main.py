@@ -1,45 +1,153 @@
+# ///////////////////////////////////////////////////////////////
+#
+#				！警告！
+#
+#		この実行ファイルは書き換えないでください。
+#
+# ///////////////////////////////////////////////////////////////
+
 # 各種ライブラリのインポート
-import discord
-import twitter
-
-import yaml
+#import configparser
 import os
+import sys
+import tkinter as tk
+import tkinter.simpledialog as simpledialog
 from datetime import datetime
+from json import load
 from logging import getLogger, config
+from tkinter import messagebox
 
-# トークンデータの読み込み
-import OAuthData
+title = 'SOYM_DiscordBot version1.1.0.211209-rc4'
+
+# ライブラリをインストールするかどうかをユーザーに確認し、インストールする
+def AskInstall():
+	AskMsg = '{leng}つのライブラリがインストールされていません。インストールしますか?'.format(leng = len(InstallLib))
+	Slt = messagebox.askyesno(title, AskMsg)
+
+	if Slt:
+		for LibName in InstallLib:
+			LOGt = 'ライブラリ"{LName}"をインストールしています'.format(LName = LibName)
+			LOG.info(LOGt)
+			command = 'pip install {LName}'.format(LName = LibName)
+			os.system(command)
+
+	else:
+		messagebox.showerror(title, "Botの動作にはライブラリをインストールする必要があります。Botを終了します。")
+		exit()
+
+# OAuthData.pyにアクセストークンが定義されているかどうかを確認する
+# 定義されていない項目がある場合、Botを終了する
+def CheckData():
+	flag = True
+
+	if(not OAuthData.consumer_key or len(OAuthData.consumer_key) <= 0):
+		LOG.critical('"OAuthData.consumer_key"が定義されていません')
+		flag = False
+
+	if(not OAuthData.consumer_secret or len(OAuthData.consumer_secret) <= 0):
+		LOG.critical('"OAuthData.consumer_secret"が定義されていません')
+		flag = False
+
+	if(not OAuthData.access_token or len(OAuthData.access_token) <= 0):
+		LOG.critical('"OAuthData.access_token"が定義されていません')
+		flag = False
+
+	if(not OAuthData.access_token_secret or len(OAuthData.access_token_secret) <= 0):
+		LOG.critical('"OAuthData.access_token_secret"が定義されていません')
+		flag = False
+
+	if(not OAuthData.discord_token or len(OAuthData.discord_token) <= 0):
+		LOG.critical('"OAuthData.discord_token"が定義されていません')
+		flag = False
+
+	if(not OAuthData.discord_channel):
+		LOG.critical('"OAuthData.discord_channel"が定義されていません')
+		flag = False
+
+	if(not OAuthData.twitter_account_id):
+		LOG.critical('"OAuthData.twitter_account_id"が定義されていません')
+		flag = False
+
+	if(not OAuthData.twitter_name or len(OAuthData.twitter_name) <= 0):
+		LOG.critical('"OAuthData.twitter_name"が定義されていません')
+		flag = False
+
+	if not flag:
+		LOG.info('Botを終了します')
+		messagebox.showerror(title, "\"OAuthData.py\"に記述されていない項目があります。詳細はログを確認してください。\nBotを終了します。")
+		exit()
+
+# ログファイルの操作
+def Ready_logfile():
+	# フォルダが存在しない場合作成する
+	if os.path.isdir('logdump') == False:
+		os.mkdir('logdump')
+
+	# 古いログファイルが見つかった場合は名前を変更する
+	ofilename = 'logdump/logger.log'
+	if os.path.isfile(ofilename):
+		i = 0
+		flag = True
+		while(flag):
+			lfilename = 'logdump/logger_{num}.log'.format(num = i)
+			flag = os.path.isfile(lfilename)
+			i += 1
+		os.rename(ofilename, lfilename)
 
 # 前処理
-title = 'SOYM_DiscordBot version1.0.5.211110'
 os.system('title ' + title)
-client = discord.Client()
-#hideRT = 'RT @{aName}:'.format(aName = OAuthData.twitter_name)
+print("Botを起動しています . . .")
+root = tk.Tk()
+root.withdraw()
 
 # ロガーの準備
+Ready_logfile()
+
+if os.path.isfile('LogConfig.json'):
+	with open("LogConfig.json", "r", encoding = "utf-8") as f:
+		config.dictConfig(load(f))
+else:
+	messagebox.showwarning(title, "\"LogConfig.json\"が見つかりませんでした。Botの実行は継続されますが、ログはファイルに出力されません。")
+
 LOG = getLogger(__name__)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print(os.getcwd())
 
-# フォルダが存在しない場合作成する
-if os.path.isdir('logdump') == False:
-	os.mkdir('logdump')
-
-# 古いログファイルが見つかった場合は名前を変更する
-ofilename = 'logdump/logger.log'
-if os.path.isfile(ofilename):
-	i = 0
-	flag = True
-	while(flag):
-		lfilename = 'logdump/logger_{num}.log'.format(num = i)
-		flag = os.path.isfile(lfilename)
-		i += 1
-	os.rename(ofilename, lfilename)
-
-config.dictConfig(yaml.load(open('log_config.yaml').read(), Loader=yaml.SafeLoader))
-
 LOG.info(title)
 LOG.info('--------------- START LOGGING ---------------')
+
+# トークンデータの読み込み
+try:
+	import OAuthData
+except ModuleNotFoundError as e:
+	LOG.critical(e)
+	messagebox.showerror(title, "\"OAuthData.py\"が見つかりません。Botを終了します。")
+	exit()
+
+# discord.pyとtwitterライブラリのインポート
+InstallLib = list()
+
+try:
+	import discord
+except ModuleNotFoundError as e:
+	LOG.critical(e)
+	InstallLib.append('discord.py')
+
+try:
+	import twitter
+except ModuleNotFoundError as e:
+	LOG.critical(e)
+	InstallLib.append('twitter')
+
+# ライブラリを一つでもインストールした場合再起動する
+if len(InstallLib) > 0:
+	AskInstall()
+	os.system('start BOT_START.bat')
+	exit()
+
+CheckData()
+
+client = discord.Client()
 
 # 起動時に動作する処理
 @client.event
@@ -82,20 +190,14 @@ async def on_ready():
 					'RT @' not in tweet['text']]
 				):
 					LOG.debug(tl)
-					LOG.info("ツイートが見つかりました")
+					LOG.info('ツイートが見つかりました')
 					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
 					await login_channel.send(url)
-
-				"""
-				# ツイートに「exit」のワードが含まれていた場合
-				if 'exit' in tweet['text']:
-					exit()
-				"""
 
 		# 原因不明のKeyErrorはログを吐かせて無視する
 		except KeyError as ke:
 			print(ke)
-			LOG.warning("KeyErrorを無視しました")
+			LOG.warning('KeyErrorを無視しました')
 
 		except Exception as e:
 			LOG.error(e)

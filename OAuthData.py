@@ -10,7 +10,7 @@ access_token_secret	= ''
 DiscordBotアカウント:hogebot#hoge
 """
 discord_token		= ''
-discord_channel		= 
+discord_channel		= 0
 
 """
 ツイート取得対象アカウント:@ongeki_official
