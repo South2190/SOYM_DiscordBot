@@ -17,7 +17,7 @@ from json import load
 from logging import getLogger, config
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version1.1.0.211209-rc4'
+title = 'SOYM_DiscordBot version1.1.0.211214'
 
 # ライブラリをインストールするかどうかをユーザーに確認し、インストールする
 def AskInstall():
