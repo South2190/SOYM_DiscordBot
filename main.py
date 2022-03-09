@@ -40,46 +40,46 @@ def _import(module, ver=None):
 			return False
 	return True
 
-# OAuthData.pyにアクセストークンが定義されているかどうかを確認する
+# BotSettings.pyにアクセストークンが定義されているかどうかを確認する
 # 定義されていない項目がある場合、Botを終了する
 def CheckData():
 	flag = True
 
-	if(not OAuthData.consumer_key or len(OAuthData.consumer_key) <= 0):
-		LOG.critical('"OAuthData.consumer_key"が定義されていません')
+	if(not BotSettings.consumer_key or len(BotSettings.consumer_key) <= 0):
+		LOG.critical('"BotSettings.consumer_key"が定義されていません')
 		flag = False
 
-	if(not OAuthData.consumer_secret or len(OAuthData.consumer_secret) <= 0):
-		LOG.critical('"OAuthData.consumer_secret"が定義されていません')
+	if(not BotSettings.consumer_secret or len(BotSettings.consumer_secret) <= 0):
+		LOG.critical('"BotSettings.consumer_secret"が定義されていません')
 		flag = False
 
-	if(not OAuthData.access_token or len(OAuthData.access_token) <= 0):
-		LOG.critical('"OAuthData.access_token"が定義されていません')
+	if(not BotSettings.access_token or len(BotSettings.access_token) <= 0):
+		LOG.critical('"BotSettings.access_token"が定義されていません')
 		flag = False
 
-	if(not OAuthData.access_token_secret or len(OAuthData.access_token_secret) <= 0):
-		LOG.critical('"OAuthData.access_token_secret"が定義されていません')
+	if(not BotSettings.access_token_secret or len(BotSettings.access_token_secret) <= 0):
+		LOG.critical('"BotSettings.access_token_secret"が定義されていません')
 		flag = False
 
-	if(not OAuthData.discord_token or len(OAuthData.discord_token) <= 0):
-		LOG.critical('"OAuthData.discord_token"が定義されていません')
+	if(not BotSettings.discord_bot_name or len(BotSettings.discord_bot_name) <= 0):
+		LOG.critical('"BotSettings.discord_bot_name"が定義されていません')
 		flag = False
 
-	if(not OAuthData.discord_channel):
-		LOG.critical('"OAuthData.discord_channel"が定義されていません')
+	if(not BotSettings.webhook_uri or len(BotSettings.webhook_uri) <= 0):
+		LOG.critical('"BotSettings.webhook_uri"が定義されていません')
 		flag = False
 
-	if(not OAuthData.twitter_account_id):
-		LOG.critical('"OAuthData.twitter_account_id"が定義されていません')
+	if(not BotSettings.icon_uri or len(BotSettings.icon_uri) <= 0):
+		LOG.critical('"BotSettings.icon_uri"が定義されていません')
 		flag = False
 
-	if(not OAuthData.twitter_name or len(OAuthData.twitter_name) <= 0):
-		LOG.critical('"OAuthData.twitter_name"が定義されていません')
+	if(not BotSettings.twitter_account_id):
+		LOG.critical('"BotSettings.twitter_account_id"が定義されていません')
 		flag = False
 
 	if not flag:
 		LOG.info('Botを終了します')
-		messagebox.showerror(title, "\"OAuthData.py\"に記述されていない項目があります。詳細はログを確認してください。\nBotを終了します。")
+		messagebox.showerror(title, "\"BotSettings.py\"に記述されていない項目があります。詳細はログを確認してください。\nBotを終了します。")
 		exit()
 
 # ログファイルの操作
@@ -123,10 +123,10 @@ LOG.info('--------------- START LOGGING ---------------')
 
 # トークンデータの読み込み
 try:
-	import OAuthData
+	import BotSettings
 except ModuleNotFoundError as e:
 	LOG.critical(e)
-	messagebox.showerror(title, "\"OAuthData.py\"が見つかりません。Botを終了します。")
+	messagebox.showerror(title, "\"BotSettings.py\"が見つかりません。Botを終了します。")
 	exit()
 
 ImportLibResult = _import('tweepy')
@@ -174,12 +174,12 @@ class StreamListener(tweepy.Stream):
 			LOG.debug(url)
 
 			main_content = {
-				'username': 'オンゲキ新曲通知Bot(v2.0.0)',
-				'avatar_url': 'https://pbs.twimg.com/profile_images/1478941158680440832/POiy6wim_400x400.jpg',
+				'username': BotSettings.discord_bot_name,
+				'avatar_url': BotSettings.icon_uri,
 				'content': url
 			}
 			headers = {'Content-Type': 'application/json'}
-			response = requests.post(OAuthData.webhook_uri, json.dumps(main_content), headers=headers)
+			response = requests.post(BotSettings.webhook_uri, json.dumps(main_content), headers=headers)
 
 	def on_error(self, status_code):
 		LOG.error(f"status:{status_code}")
@@ -210,12 +210,12 @@ class StreamListener(tweepy.Stream):
 CheckData()
 
 # Listenerの宣言
-twitter_stream = StreamListener(OAuthData.consumer_key, OAuthData.consumer_secret, OAuthData.access_token, OAuthData.access_token_secret)
+twitter_stream = StreamListener(BotSettings.consumer_key, BotSettings.consumer_secret, BotSettings.access_token, BotSettings.access_token_secret)
 
 LOG.info('ツイートの受信を開始します')
 
 # 絞り込み条件で特定ユーザーからのツイートのみ取得
-twitter_stream.filter(follow = [OAuthData.twitter_account_id])
+twitter_stream.filter(follow = [BotSettings.twitter_account_id])
 
 if __name__ != '__main__':
 	exit()
