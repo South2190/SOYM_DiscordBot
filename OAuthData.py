@@ -7,10 +7,9 @@ access_token		= ''
 access_token_secret	= ''
 
 """
-DiscordBotアカウント:hogebot#hoge
+ウェブフックURL
 """
-discord_token		= ''
-discord_channel		= 0
+webhook_uri			= ''
 
 """
 ツイート取得対象アカウント:@ongeki_official

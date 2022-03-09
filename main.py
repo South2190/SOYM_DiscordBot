@@ -8,32 +8,37 @@
 
 # 各種ライブラリのインポート
 #import configparser
+import importlib
+import json
 import os
+import requests
 import sys
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
 from datetime import datetime
 from json import load
 from logging import getLogger, config
+from pip._internal import main as _main
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version1.1.0.211214'
+title = 'SOYM_DiscordBot version2.0.0.220309'
 
-# ライブラリをインストールするかどうかをユーザーに確認し、インストールする
-def AskInstall():
-	AskMsg = '{leng}つのライブラリがインストールされていません。インストールしますか?'.format(leng = len(InstallLib))
-	Slt = messagebox.askyesno(title, AskMsg)
-
-	if Slt:
-		for LibName in InstallLib:
-			LOGt = 'ライブラリ"{LName}"をインストールしています'.format(LName = LibName)
-			LOG.info(LOGt)
-			command = 'pip install {LName}'.format(LName = LibName)
-			os.system(command)
-
-	else:
-		messagebox.showerror(title, "Botの動作にはライブラリをインストールする必要があります。Botを終了します。")
-		exit()
+# ライブラリのインポートを行う
+# ライブラリが存在しない場合インストールを行う
+def _import(module, ver=None):
+	try:
+		globals()['tweepy'] = importlib.import_module(module)
+	except ImportError:
+		try:
+			if ver is None:
+				_main(['install', module])
+			else:
+				_main(['install', '{}=={}'.format(module, ver)])
+			globals()['tweepy'] = importlib.import_module(module)
+		except:
+			LOG.critical("can't import: {}".format(module))
+			return False
+	return True
 
 # OAuthData.pyにアクセストークンが定義されているかどうかを確認する
 # 定義されていない項目がある場合、Botを終了する
@@ -107,7 +112,7 @@ if os.path.isfile('LogConfig.json'):
 	with open("LogConfig.json", "r", encoding = "utf-8") as f:
 		config.dictConfig(load(f))
 else:
-	messagebox.showwarning(title, "\"LogConfig.json\"が見つかりませんでした。Botの実行は継続されますが、ログはファイルに出力されません。")
+	messagebox.showwarning(title, "\"LogConfig.json\"が見つかりませんでした。Botの実行は継続されますが、ログは出力されません。")
 
 LOG = getLogger(__name__)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -124,86 +129,93 @@ except ModuleNotFoundError as e:
 	messagebox.showerror(title, "\"OAuthData.py\"が見つかりません。Botを終了します。")
 	exit()
 
-# discord.pyとtwitterライブラリのインポート
-InstallLib = list()
+ImportLibResult = _import('tweepy')
+if ImportLibResult:
+	LOG.info("モジュール\"tweepy\"のインポートに成功しました")
+else:
+	messagebox.showerror(title, "モジュール\"tweepy\"がインストールできませんでした。Botを終了します。")
 
-try:
-	import discord
-except ModuleNotFoundError as e:
-	LOG.critical(e)
-	InstallLib.append('discord.py')
+#tweepyがリアルタイムでツイートを取得する
+class StreamListener(tweepy.Stream):
+	# 対象のユーザーが新規にツイートをするたびにこの関数が走る
+	def on_status(self, status):
+		# ツイートの全文を取得する
+		if 'extended_tweet' in status._json:
+			text = status._json['extended_tweet']['full_text']
+			IsExtended = True
+		elif 'extended_tweet' not in status._json:
+			text = status.text
+			IsExtended = False
+			
+		tweet_type = self.check_tweet_type(status)
 
-try:
-	import twitter
-except ModuleNotFoundError as e:
-	LOG.critical(e)
-	InstallLib.append('twitter')
+		# リツイートやリプライだった場合は内容を表示し終了(ログには出力しない)
+		if tweet_type != 'normal_tweet':
+			tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = status.id, username = status.user.screen_name, text = text)
+			print(tl)
+			return
 
-# ライブラリを一つでもインストールした場合再起動する
-if len(InstallLib) > 0:
-	AskInstall()
-	os.system('start BOT_START.bat')
-	exit()
+		# ツイートをログに出力する
+		tl = '(tweetID:{id}, IsExtended:{ext}) [@{username}]:{text}\n'.format(id = status.id, ext = IsExtended, username = status.user.screen_name, text = text)
+		LOG.debug(tl)
+
+		# 新曲通知ツイートかどうかを判定する
+		if any(
+			['追加' in text and any(
+				['新曲' in text,
+				'楽曲' in text,
+				'LUNATIC' in text]
+			),
+			'一挙公開' in text,
+			'追加曲公開' in text]
+		):
+			LOG.info('ツイートが見つかりました')
+			url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = status.user.screen_name, tweetid = status.id)
+			LOG.debug(url)
+
+			main_content = {
+				'username': 'オンゲキ新曲通知Bot(v2.0.0)',
+				'avatar_url': 'https://pbs.twimg.com/profile_images/1478941158680440832/POiy6wim_400x400.jpg',
+				'content': url
+			}
+			headers = {'Content-Type': 'application/json'}
+			response = requests.post(OAuthData.webhook_uri, json.dumps(main_content), headers=headers)
+
+	def on_error(self, status_code):
+		LOG.error(f"status:{status_code}")
+		return True
+
+	def on_warning(self, notice):
+		LOG.warning(notice.message)
+		return
+
+	def on_exception(self, exception):
+		LOG.error(exception)
+		return
+
+	# ツイートの種類をチェック（リツイート or リプライ or 通常のツイート）
+	def check_tweet_type(self, status):
+		# JSON内のキーに「retweeted_status」があればリツイート
+		if 'retweeted_status' in status._json.keys():
+			return 'retweet'
+
+		# 「in_reply_to_user_id」がNoneでなかった場合はリプライ
+		elif status.in_reply_to_user_id != None:
+			return 'reply'
+
+		# それ以外は通常のツイート
+		else:
+			return 'normal_tweet'
 
 CheckData()
 
-client = discord.Client()
+# Listenerの宣言
+twitter_stream = StreamListener(OAuthData.consumer_key, OAuthData.consumer_secret, OAuthData.access_token, OAuthData.access_token_secret)
 
-# 起動時に動作する処理
-@client.event
-async def on_ready():
-	# 起動したらチャンネルにログイン通知を送信
-	login_channel = client.get_channel(OAuthData.discord_channel)
-	#s_msg = await login_channel.send('起動しました')
-	LOG.info('ログインしました')
+LOG.info('ツイートの受信を開始します')
 
-	# 10秒待った後に起動通知メッセージを削除
-	os.system('timeout 11')
-	#await s_msg.delete()
-
-	# Twitterからツイートを取得
-	oauth = twitter.OAuth(OAuthData.access_token, OAuthData.access_token_secret, OAuthData.consumer_key, OAuthData.consumer_secret)
-	twitter_api = twitter.Twitter(auth=oauth)
-
-	stream = twitter.TwitterStream(auth=oauth, secure=True)
-
-	while(True):
-		try:
-			# 特定ユーザーのツイートをリアルタイムで受信
-			LOG.info('ツイートの受信を開始します')
-			for tweet in stream.statuses.filter(follow = OAuthData.twitter_account_id):
-				# ツイートを出力
-				tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = tweet['id'], username = tweet['user']['screen_name'], text = tweet['text'])
-				print(tl)
-
-				# 新曲追加に関するツイートの抽出
-				if all(
-					# ツイート元が@ongeki_officialの場合
-					[tweet['user']['screen_name'] == OAuthData.twitter_name,
-					# いずれかのワードが含まれていた場合
-					any(
-						[('追加' in tweet['text'] and ('新曲' in tweet['text'] or '楽曲' in tweet['text'])),
-						'一挙公開' in tweet['text'],
-						'LUNATIC' in tweet['text']]
-					),
-					# リツイートでない場合
-					'RT @' not in tweet['text']]
-				):
-					LOG.debug(tl)
-					LOG.info('ツイートが見つかりました')
-					url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = tweet['user']['screen_name'], tweetid = tweet['id'])
-					await login_channel.send(url)
-
-		# 原因不明のKeyErrorはログを吐かせて無視する
-		except KeyError as ke:
-			print(ke)
-			LOG.warning('KeyErrorを無視しました')
-
-		except Exception as e:
-			LOG.error(e)
-
-# Botの起動とDiscordサーバーへの接続
-client.run(OAuthData.discord_token)
+# 絞り込み条件で特定ユーザーからのツイートのみ取得
+twitter_stream.filter(follow = [OAuthData.twitter_account_id])
 
 if __name__ != '__main__':
 	exit()
