@@ -1,4 +1,7 @@
 # SOYM_DiscordBot
+
+[![](https://img.shields.io/github/v/release/South2190/SOYM_DiscordBot)](https://github.com/South2190/SOYM_DiscordBot/releases)
+
 身内用Discordサーバー専用Bot。
 
 こちらのBotはWindows向けに開発しているため、他の環境だと動作しません。暇があればLinux、Macにも対応したいとは思ってますがいつになるか分かりません。
