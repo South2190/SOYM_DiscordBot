@@ -1,6 +1,6 @@
 # SOYM_DiscordBot
 
-[![](https://img.shields.io/github/v/release/South2190/SOYM_DiscordBot)](https://github.com/South2190/SOYM_DiscordBot/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/South2190/SOYM_DiscordBot)](https://github.com/South2190/SOYM_DiscordBot/releases)
 [![](https://img.shields.io/badge/-changelog-green)](https://github.com/South2190/SOYM_DiscordBot/blob/master/changelog.md)
 
 身内用Discordサーバー専用Bot。
