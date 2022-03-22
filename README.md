@@ -1,4 +1,8 @@
 # SOYM_DiscordBot
+
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/South2190/SOYM_DiscordBot)](https://github.com/South2190/SOYM_DiscordBot/releases)
+[![](https://img.shields.io/badge/-changelog-green)](https://github.com/South2190/SOYM_DiscordBot/blob/master/changelog.md)
+
 身内用Discordサーバー専用Bot。
 
 こちらのBotはWindows向けに開発しているため、他の環境だと動作しません。暇があればLinux、Macにも対応したいとは思ってますがいつになるか分かりません。
@@ -33,6 +37,3 @@
 
 - コマンド操作機能。コマンドを入力することでBotの設定を操作したりすることができるようにする「予定」。あくまで「予定」。
 - ini形式のBotの設定ファイルの追加
-
-## 更新履歴
-- [changelog.md](https://github.com/South2190/SOYM_DiscordBot/blob/master/changelog.md)
