@@ -21,20 +21,23 @@ from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version2.0.0.220309'
+title = 'SOYM_DiscordBot version2.0.1.220317'
+
+if __name__ != '__main__':
+	exit()
 
 # ライブラリのインポートを行う
 # ライブラリが存在しない場合インストールを行う
-def _import(module, ver=None):
+def _import(name, module, ver=None):
 	try:
-		globals()['tweepy'] = importlib.import_module(module)
+		globals()[name] = importlib.import_module(module)
 	except ImportError:
 		try:
 			if ver is None:
 				_main(['install', module])
 			else:
 				_main(['install', '{}=={}'.format(module, ver)])
-			globals()['tweepy'] = importlib.import_module(module)
+			globals()[name] = importlib.import_module(module)
 		except:
 			LOG.critical("can't import: {}".format(module))
 			return False
@@ -129,11 +132,12 @@ except ModuleNotFoundError as e:
 	messagebox.showerror(title, "\"BotSettings.py\"が見つかりません。Botを終了します。")
 	exit()
 
-ImportLibResult = _import('tweepy')
+ImportLibResult = _import('tweepy', 'tweepy')
 if ImportLibResult:
 	LOG.info("モジュール\"tweepy\"のインポートに成功しました")
 else:
 	messagebox.showerror(title, "モジュール\"tweepy\"がインストールできませんでした。Botを終了します。")
+	exit()
 
 #tweepyがリアルタイムでツイートを取得する
 class StreamListener(tweepy.Stream):
@@ -149,8 +153,8 @@ class StreamListener(tweepy.Stream):
 			
 		tweet_type = self.check_tweet_type(status)
 
-		# リツイートやリプライだった場合は内容を表示し終了(ログには出力しない)
-		if tweet_type != 'normal_tweet':
+		# リツイートだった場合と、リプライかつオンゲキ公式によるリプライではない場合は内容を表示し終了(ログには出力しない)
+		if tweet_type == 'retweet' or (tweet_type == 'reply' and status.user.screen_name != BotSettings.account_name):
 			tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = status.id, username = status.user.screen_name, text = text)
 			print(tl)
 			return
@@ -216,6 +220,3 @@ LOG.info('ツイートの受信を開始します')
 
 # 絞り込み条件で特定ユーザーからのツイートのみ取得
 twitter_stream.filter(follow = [BotSettings.twitter_account_id])
-
-if __name__ != '__main__':
-	exit()
