@@ -2,9 +2,9 @@
 
 rem ///////////////////////////////////////////////////////////////
 rem
-rem 				ï¼è­¦å‘Šï¼
+rem 				IŒxI
 rem
-rem 		ã“ã®å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ã¯æ›¸ãæ›ãˆãªã„ã§ãã ã•ã„ã€‚
+rem 		‚±‚ÌŽÀsƒtƒ@ƒCƒ‹‚Í‘‚«Š·‚¦‚È‚¢‚Å‚­‚¾‚³‚¢B
 rem
 rem ///////////////////////////////////////////////////////////////
 
@@ -29,7 +29,7 @@ if not '%ERRORLEVEL%'=='0' (
 
 :ASK_PYINSTALL
  set Slt=nul
- set /p Slt=PythonãŒã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã•ã‚Œã¦ã„ãªã„ã‚ˆã†ã§ã™ã€‚ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã—ã¾ã™ã‹?(y/n)^>
+ set /p Slt=Python‚ªƒCƒ“ƒXƒg[ƒ‹‚³‚ê‚Ä‚¢‚È‚¢‚æ‚¤‚Å‚·BƒCƒ“ƒXƒg[ƒ‹‚µ‚Ü‚·‚©?(y/n)^>
 
  if '%Slt%'=='y' goto PYINSTALL
  if '%Slt%'=='n' goto ERROR2
@@ -38,13 +38,13 @@ if not '%ERRORLEVEL%'=='0' (
 
 :PYINSTALL
  start python
- mshta vbscript:execute("msgbox""Pythonã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«å¾Œã€å†åº¦ãƒ©ãƒ³ãƒãƒ£ãƒ¼ã‚’å®Ÿè¡Œã—ã¦ãã ã•ã„ã€‚"",64,""SOYM_DiscordBot Launcher"":close")
+ mshta vbscript:execute("msgbox""Python‚ðƒCƒ“ƒXƒg[ƒ‹ŒãAÄ“xƒ‰ƒ“ƒ`ƒƒ[‚ðŽÀs‚µ‚Ä‚­‚¾‚³‚¢B"",64,""SOYM_DiscordBot Launcher"":close")
  goto EXIT
 
 :ERROR
- mshta vbscript:execute("msgbox""å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«""""main.py""""ãŒè¦‹ã¤ã‹ã‚‰ãªã„ãŸã‚Botã‚’èµ·å‹•ã§ãã¾ã›ã‚“ã€‚"",16,""SOYM_DiscordBot Launcher"":close")
+ mshta vbscript:execute("msgbox""ŽÀsƒtƒ@ƒCƒ‹""""main.py""""‚ªŒ©‚Â‚©‚ç‚È‚¢‚½‚ßBot‚ð‹N“®‚Å‚«‚Ü‚¹‚ñB"",16,""SOYM_DiscordBot Launcher"":close")
  goto EXIT
 
 :ERROR2
- mshta vbscript:execute("msgbox""Botã‚’åˆ©ç”¨ã™ã‚‹ã«ã¯Pythonã‚’ã‚¤ãƒ³ã‚¹ãƒˆãƒ¼ãƒ«ã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚ãƒ©ãƒ³ãƒãƒ£ãƒ¼ã‚’çµ‚äº†ã—ã¾ã™ã€‚"",16,""SOYM_DiscordBot Launcher"":close")
+ mshta vbscript:execute("msgbox""Bot‚ð—˜—p‚·‚é‚É‚ÍPython‚ðƒCƒ“ƒXƒg[ƒ‹‚·‚é•K—v‚ª‚ ‚è‚Ü‚·Bƒ‰ƒ“ƒ`ƒƒ[‚ðI—¹‚µ‚Ü‚·B"",16,""SOYM_DiscordBot Launcher"":close")
  goto EXIT

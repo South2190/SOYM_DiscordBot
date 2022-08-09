@@ -15,13 +15,13 @@ import requests
 import sys
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
-from datetime import datetime
+#from datetime import datetime
 from json import load
 from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version2.0.1.220317'
+title = 'SOYM_DiscordBot version2.0.2.220810'
 
 if __name__ != '__main__':
 	exit()
@@ -80,6 +80,10 @@ def CheckData():
 		LOG.critical('"BotSettings.twitter_account_id"が定義されていません')
 		flag = False
 
+	if(not BotSettings.account_name or len(BotSettings.account_name) <= 0):
+		LOG.critical('"BotSettings.account_name"が定義されていません')
+		flag = False
+
 	if not flag:
 		LOG.info('Botを終了します')
 		messagebox.showerror(title, "\"BotSettings.py\"に記述されていない項目があります。詳細はログを確認してください。\nBotを終了します。")
@@ -117,6 +121,7 @@ if os.path.isfile('LogConfig.json'):
 else:
 	messagebox.showwarning(title, "\"LogConfig.json\"が見つかりませんでした。Botの実行は継続されますが、ログは出力されません。")
 
+# カレントディレクトリの変更
 LOG = getLogger(__name__)
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 print(os.getcwd())
@@ -124,7 +129,7 @@ print(os.getcwd())
 LOG.info(title)
 LOG.info('--------------- START LOGGING ---------------')
 
-# トークンデータの読み込み
+# Bot設定の読み込み
 try:
 	import BotSettings
 except ModuleNotFoundError as e:
@@ -132,6 +137,7 @@ except ModuleNotFoundError as e:
 	messagebox.showerror(title, "\"BotSettings.py\"が見つかりません。Botを終了します。")
 	exit()
 
+# モジュール"tweepy"の読み込み
 ImportLibResult = _import('tweepy', 'tweepy')
 if ImportLibResult:
 	LOG.info("モジュール\"tweepy\"のインポートに成功しました")
@@ -151,17 +157,17 @@ class StreamListener(tweepy.Stream):
 			text = status.text
 			IsExtended = False
 			
+		tl = '(tweetID:{id}, IsExtended:{ext}) [@{username}]:{text}\n'.format(id = status.id, ext = IsExtended, username = status.user.screen_name, text = text)
+
 		tweet_type = self.check_tweet_type(status)
 
-		# リツイートだった場合と、リプライかつオンゲキ公式によるリプライではない場合は内容を表示し終了(ログには出力しない)
+		# リツイートだった場合またはオンゲキ公式によるリプライではない場合は内容を表示し終了(ログには出力しない)
 		if tweet_type == 'retweet' or (tweet_type == 'reply' and status.user.screen_name != BotSettings.account_name):
-			tl = '({time} tweetID:{id}) [@{username}]:{text}\n'.format(time=datetime.now().strftime("%Y/%m/%d %H:%M:%S"), id = status.id, username = status.user.screen_name, text = text)
-			print(tl)
+			LOG.debug(tl)
 			return
 
 		# ツイートをログに出力する
-		tl = '(tweetID:{id}, IsExtended:{ext}) [@{username}]:{text}\n'.format(id = status.id, ext = IsExtended, username = status.user.screen_name, text = text)
-		LOG.debug(tl)
+		LOG.info(tl)
 
 		# 新曲通知ツイートかどうかを判定する
 		if any(
@@ -171,11 +177,12 @@ class StreamListener(tweepy.Stream):
 				'LUNATIC' in text]
 			),
 			'一挙公開' in text,
-			'追加曲公開' in text]
+			'追加曲公開' in text,
+			'連動イベント' in text]
 		):
 			LOG.info('ツイートが見つかりました')
 			url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = status.user.screen_name, tweetid = status.id)
-			LOG.debug(url)
+			LOG.info(url)
 
 			main_content = {
 				'username': BotSettings.discord_bot_name,

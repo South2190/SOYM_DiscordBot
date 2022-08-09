@@ -28,7 +28,7 @@
 		},
 		"fileHandler": {
 			"class": "logging.FileHandler",
-			"level": "DEBUG",
+			"level": "INFO",
 			"formatter": "simple_fmt",
 			"filename": "logdump/logger.log"
 		}
