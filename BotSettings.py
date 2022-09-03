@@ -13,7 +13,7 @@ Discord設定
 webhook_uri				= ''
 
 # 送信時に使用するBotの名前
-discord_bot_name		= 'オンゲキ新曲通知Bot(v2.0.2)'
+discord_bot_name		= 'オンゲキ新曲通知Bot(v2.0.3)'
 
 # アイコン画像URL
 icon_uri				= ''

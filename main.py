@@ -11,7 +11,6 @@
 import importlib
 import json
 import os
-import requests
 import sys
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
@@ -21,7 +20,7 @@ from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version2.0.2.220810'
+title = 'SOYM_DiscordBot version2.0.3.220903'
 
 if __name__ != '__main__':
 	exit()
@@ -143,6 +142,14 @@ if ImportLibResult:
 	LOG.info("モジュール\"tweepy\"のインポートに成功しました")
 else:
 	messagebox.showerror(title, "モジュール\"tweepy\"がインストールできませんでした。Botを終了します。")
+	exit()
+
+# モジュール"requests"の読み込み
+ImportLibResult = _import('requests', 'requests')
+if ImportLibResult:
+	LOG.info("モジュール\"requests\"のインポートに成功しました")
+else:
+	messagebox.showerror(title, "モジュール\"requests\"がインストールできませんでした。Botを終了します。")
 	exit()
 
 #tweepyがリアルタイムでツイートを取得する
