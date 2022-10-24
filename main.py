@@ -20,14 +20,15 @@ from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-title = 'SOYM_DiscordBot version2.0.3.220903'
+version = '2.1.0.221025'
+title = 'SOYM_DiscordBot version' + version
 
 if __name__ != '__main__':
 	exit()
 
 # ライブラリのインポートを行う
 # ライブラリが存在しない場合インストールを行う
-def _import(name, module, ver=None):
+def Import(name, module, ver=None):
 	try:
 		globals()[name] = importlib.import_module(module)
 	except ImportError:
@@ -41,6 +42,17 @@ def _import(name, module, ver=None):
 			LOG.critical("can't import: {}".format(module))
 			return False
 	return True
+
+# 新しいバージョンがリリースされているかどうかをサーバーに問い合わせて確認する
+# 新しいバージョンがリリースされていた場合、その旨をログに出力する
+def CheckVersion():
+	response = requests.get('https://api.github.com/repos/South2190/SOYM_DiscordBot/releases/latest')
+	conv = response.json()
+	resVersion = conv.get("tag_name")
+
+	if resVersion != 'v' + version:
+		t = '新しいバージョンがリリースされています: v{} -> {}'.format(version, resVersion)
+		LOG.info(t)
 
 # BotSettings.pyにアクセストークンが定義されているかどうかを確認する
 # 定義されていない項目がある場合、Botを終了する
@@ -89,7 +101,7 @@ def CheckData():
 		exit()
 
 # ログファイルの操作
-def Ready_logfile():
+def ReadyLogfile():
 	# フォルダが存在しない場合作成する
 	if os.path.isdir('logdump') == False:
 		os.mkdir('logdump')
@@ -112,7 +124,7 @@ root = tk.Tk()
 root.withdraw()
 
 # ロガーの準備
-Ready_logfile()
+ReadyLogfile()
 
 if os.path.isfile('LogConfig.json'):
 	with open("LogConfig.json", "r", encoding = "utf-8") as f:
@@ -137,7 +149,7 @@ except ModuleNotFoundError as e:
 	exit()
 
 # モジュール"tweepy"の読み込み
-ImportLibResult = _import('tweepy', 'tweepy')
+ImportLibResult = Import('tweepy', 'tweepy')
 if ImportLibResult:
 	LOG.info("モジュール\"tweepy\"のインポートに成功しました")
 else:
@@ -145,12 +157,14 @@ else:
 	exit()
 
 # モジュール"requests"の読み込み
-ImportLibResult = _import('requests', 'requests')
+ImportLibResult = Import('requests', 'requests')
 if ImportLibResult:
 	LOG.info("モジュール\"requests\"のインポートに成功しました")
 else:
 	messagebox.showerror(title, "モジュール\"requests\"がインストールできませんでした。Botを終了します。")
 	exit()
+
+CheckVersion()
 
 #tweepyがリアルタイムでツイートを取得する
 class StreamListener(tweepy.Stream):
@@ -188,7 +202,7 @@ class StreamListener(tweepy.Stream):
 			'連動イベント' in text]
 		):
 			LOG.info('ツイートが見つかりました')
-			url = 'https://twitter.com/{user}/status/{tweetid}'.format(user = status.user.screen_name, tweetid = status.id)
+			url = 'https://twitter.com/a/status/{tweetid}'.format(tweetid = status.id)
 			LOG.info(url)
 
 			main_content = {
@@ -199,16 +213,21 @@ class StreamListener(tweepy.Stream):
 			headers = {'Content-Type': 'application/json'}
 			response = requests.post(BotSettings.webhook_uri, json.dumps(main_content), headers=headers)
 
-	def on_error(self, status_code):
-		LOG.error(f"status:{status_code}")
-		return True
+	# エラーの種類に応じてログを出力する
+	# https://docs.tweepy.org/en/stable/stream.html#tweepy.Stream.on_warning
+	def on_connect(self):
+		LOG.info("streaming APIへの接続に成功しました")
 
-	def on_warning(self, notice):
-		LOG.warning(notice.message)
+	def on_connection_error(self):
+		LOG.warning("Stream接続エラーもしくはタイムアウトが発生しました")
 		return
 
 	def on_exception(self, exception):
 		LOG.error(exception)
+		return
+
+	def on_request_error(self, status_code):
+		LOG.error(f"status -> {status_code}")
 		return
 
 	# ツイートの種類をチェック（リツイート or リプライ or 通常のツイート）
