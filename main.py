@@ -14,13 +14,12 @@ import os
 import sys
 import tkinter as tk
 import tkinter.simpledialog as simpledialog
-#from datetime import datetime
 from json import load
 from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-version = '2.1.0.221025'
+version = '2.1.1.221103'
 title = 'SOYM_DiscordBot version' + version
 
 if __name__ != '__main__':
@@ -53,6 +52,16 @@ def CheckVersion():
 	if resVersion != 'v' + version:
 		t = '新しいバージョンがリリースされています: v{} -> {}'.format(version, resVersion)
 		LOG.info(t)
+
+# ウインドウタイトルを設定する
+def SetTitle(text):
+    # OSの種類を判別する
+    # Windows
+	if os.name == 'nt':
+		os.system(f'title {text}')
+    # Mac / Linux
+	elif os.name == 'posix':
+		print(f'\x1b]2;{text}\x07', end='', flush=True)
 
 # BotSettings.pyにアクセストークンが定義されているかどうかを確認する
 # 定義されていない項目がある場合、Botを終了する
@@ -118,7 +127,7 @@ def ReadyLogfile():
 		os.rename(ofilename, lfilename)
 
 # 前処理
-os.system('title ' + title)
+SetTitle(title)
 print("Botを起動しています . . .")
 root = tk.Tk()
 root.withdraw()
@@ -220,15 +229,12 @@ class StreamListener(tweepy.Stream):
 
 	def on_connection_error(self):
 		LOG.warning("Stream接続エラーもしくはタイムアウトが発生しました")
-		return
 
 	def on_exception(self, exception):
-		LOG.error(exception)
-		return
+		LOG.exception("ツイートの取得中に例外が発生しました")
 
 	def on_request_error(self, status_code):
 		LOG.error(f"status -> {status_code}")
-		return
 
 	# ツイートの種類をチェック（リツイート or リプライ or 通常のツイート）
 	def check_tweet_type(self, status):
@@ -249,7 +255,7 @@ CheckData()
 # Listenerの宣言
 twitter_stream = StreamListener(BotSettings.consumer_key, BotSettings.consumer_secret, BotSettings.access_token, BotSettings.access_token_secret)
 
-LOG.info('ツイートの受信を開始します')
+LOG.info('ツイートの取得を開始します')
 
 # 絞り込み条件で特定ユーザーからのツイートのみ取得
 twitter_stream.filter(follow = [BotSettings.twitter_account_id])

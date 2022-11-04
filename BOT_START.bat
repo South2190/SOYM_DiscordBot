@@ -10,6 +10,10 @@ rem ///////////////////////////////////////////////////////////////
 
 title SOYM_DiscordBot Launcher
 
+cd %~dp0
+
+if not exist main.py goto ERROR
+
 python --version
 
 if not '%ERRORLEVEL%'=='0' (
@@ -17,27 +21,28 @@ if not '%ERRORLEVEL%'=='0' (
  goto ASK_PYINSTALL
 )
 
-:MAIN
- cd %~dp0
+python main.py
 
- if exist main.py (
-  python main.py
-  goto EXIT
- ) else (
-  goto ERROR
- )
+goto EXIT
 
 :ASK_PYINSTALL
- set Slt=nul
- set /p Slt=Pythonがインストールされていないようです。インストールしますか?(y/n)^>
+ powershell -Command "Add-Type -AssemblyName System.Windows.Forms;$result = [System.Windows.Forms.MessageBox]::Show(\"Pythonがインストールされていないようです。インストールしますか?\", 'SOYM_DiscordBot Launcher', 'YesNo', 'Question');exit $result;"
 
- if '%Slt%'=='y' goto PYINSTALL
- if '%Slt%'=='n' goto ERROR2
-
- goto ASK_PYINSTALL
+ if '%ERRORLEVEL%'=='6' (
+  goto PYINSTALL
+ ) else if '%ERRORLEVEL%'=='7' (
+  goto ERROR2
+ ) else (
+  goto ERROR3
+ )
 
 :PYINSTALL
- start python
+ wmic os get caption | findstr "10 11"
+ if '%ERRORLEVEL%'=='0' (
+  start python
+ ) else (
+  start https://www.python.org/
+ )
  mshta vbscript:execute("msgbox""Pythonをインストール後、再度ランチャーを実行してください。"",64,""SOYM_DiscordBot Launcher"":close")
  goto EXIT
 
@@ -48,3 +53,9 @@ if not '%ERRORLEVEL%'=='0' (
 :ERROR2
  mshta vbscript:execute("msgbox""Botを利用するにはPythonをインストールする必要があります。ランチャーを終了します。"",16,""SOYM_DiscordBot Launcher"":close")
  goto EXIT
+
+:ERROR3
+ mshta vbscript:execute("msgbox""このコンピューターはBotの動作要件を満たしていません。"",16,""SOYM_DiscordBot Launcher"":close")
+ goto EXIT
+
+:EXIT
