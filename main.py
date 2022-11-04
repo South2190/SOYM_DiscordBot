@@ -19,7 +19,7 @@ from logging import getLogger, config
 from pip._internal import main as _main
 from tkinter import messagebox
 
-version = '2.1.1.221103'
+version = '2.1.1.221104'
 title = 'SOYM_DiscordBot version' + version
 
 if __name__ != '__main__':
