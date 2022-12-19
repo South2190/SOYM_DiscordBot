@@ -23,7 +23,7 @@ if not '%ERRORLEVEL%'=='0' (
 
 python main.py
 
-goto EXIT
+goto :eof
 
 :ASK_PYINSTALL
  powershell -Command "Add-Type -AssemblyName System.Windows.Forms;$result = [System.Windows.Forms.MessageBox]::Show(\"Pythonがインストールされていないようです。インストールしますか?\", 'SOYM_DiscordBot Launcher', 'YesNo', 'Question');exit $result;"
@@ -44,18 +44,16 @@ goto EXIT
   start https://www.python.org/
  )
  mshta vbscript:execute("msgbox""Pythonをインストール後、再度ランチャーを実行してください。"",64,""SOYM_DiscordBot Launcher"":close")
- goto EXIT
+ goto :eof
 
 :ERROR
  mshta vbscript:execute("msgbox""実行ファイル""""main.py""""が見つからないためBotを起動できません。"",16,""SOYM_DiscordBot Launcher"":close")
- goto EXIT
+ goto :eof
 
 :ERROR2
  mshta vbscript:execute("msgbox""Botを利用するにはPythonをインストールする必要があります。ランチャーを終了します。"",16,""SOYM_DiscordBot Launcher"":close")
- goto EXIT
+ goto :eof
 
 :ERROR3
  mshta vbscript:execute("msgbox""このコンピューターはBotの動作要件を満たしていません。"",16,""SOYM_DiscordBot Launcher"":close")
- goto EXIT
-
-:EXIT
+ goto :eof

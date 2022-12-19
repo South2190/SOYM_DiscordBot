@@ -50,7 +50,7 @@ def CheckVersion():
 	resVersion = conv.get("tag_name")
 
 	if resVersion != 'v' + version:
-		t = '新しいバージョンがリリースされています: v{} -> {}'.format(version, resVersion)
+		t = '新しいバージョン ({}) がリリースされています -> https://github.com/South2190/SOYM_DiscordBot'.format(resVersion)
 		LOG.info(t)
 
 # ウインドウタイトルを設定する
