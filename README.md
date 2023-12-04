@@ -3,8 +3,8 @@
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/South2190/SOYM_DiscordBot)](https://github.com/South2190/SOYM_DiscordBot/releases)
 [![](https://img.shields.io/badge/-changelog-green)](https://github.com/South2190/SOYM_DiscordBot/blob/master/changelog.md)
 
-> **Warning**
-> TwitterAPIが利用不可になった影響により、2022年11月4日更新を最後に開発を中止しています。
+> [!NOTE]
+> TwitterAPI仕様変更の影響により、2022年11月4日更新を最後に開発を中止しています。
 
 身内用Discordサーバー専用Bot。
 
